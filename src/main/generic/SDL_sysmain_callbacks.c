@@ -65,7 +65,7 @@ int SDL_EnterAppMainCallbacks(int argc, char* argv[], SDL_AppInit_func appinit, 
             } else {
                 const Uint64 now = SDL_GetTicksNS();
                 if (next_iteration > now) { // Running faster than the limit, sleep a little.
-                    SDL_DelayNS(next_iteration - now);
+                    SDL_DelayPrecise(next_iteration - now);
                 } else {
                     next_iteration = now; // running behind (or just lost the window)...reset the timer.
                 }
@@ -73,9 +73,9 @@ int SDL_EnterAppMainCallbacks(int argc, char* argv[], SDL_AppInit_func appinit, 
             }
         }
 
-        SDL_DelHintCallback(SDL_HINT_MAIN_CALLBACK_RATE, MainCallbackRateHintChanged, NULL);
+        SDL_RemoveHintCallback(SDL_HINT_MAIN_CALLBACK_RATE, MainCallbackRateHintChanged, NULL);
     }
-    SDL_QuitMainCallbacks();
+    SDL_QuitMainCallbacks(rc);
 
     return (rc == SDL_APP_FAILURE) ? 1 : 0;
 }

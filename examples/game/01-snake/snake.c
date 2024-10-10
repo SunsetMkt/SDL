@@ -94,7 +94,7 @@ static int are_cells_full_(SnakeContext *ctx)
 
 static void new_food_pos_(SnakeContext *ctx)
 {
-    while (SDL_TRUE) {
+    while (true) {
         const char x = (char) SDL_rand(SNAKE_GAME_WIDTH);
         const char y = (char) SDL_rand(SNAKE_GAME_HEIGHT);
         if (snake_cell_at(ctx, x, y) == SNAKE_CELL_NOTHING) {
@@ -281,9 +281,33 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     return SDL_APP_CONTINUE;
 }
 
+static const struct
+{
+    const char *key;
+    const char *value;
+} extended_metadata[] =
+{
+    { SDL_PROP_APP_METADATA_URL_STRING, "https://examples.libsdl.org/SDL3/game/01-snake/" },
+    { SDL_PROP_APP_METADATA_CREATOR_STRING, "SDL team" },
+    { SDL_PROP_APP_METADATA_COPYRIGHT_STRING, "Placed in the public domain" },
+    { SDL_PROP_APP_METADATA_TYPE_STRING, "game" }
+};
+
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
 {
-    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER)) {
+    size_t i;
+
+    if (!SDL_SetAppMetadata("Example Snake game", "1.0", "com.example.Snake")) {
+        return SDL_APP_FAILURE;
+    }
+
+    for (i = 0; i < SDL_arraysize(extended_metadata); i++) {
+        if (!SDL_SetAppMetadataProperty(extended_metadata[i].key, extended_metadata[i].value)) {
+            return SDL_APP_FAILURE;
+        }
+    }
+
+    if (!SDL_Init(SDL_INIT_VIDEO)) {
         return SDL_APP_FAILURE;
     }
 
@@ -305,7 +329,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
     return SDL_APP_CONTINUE;
 }
 
-SDL_AppResult SDL_AppEvent(void *appstate, const SDL_Event *event)
+SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 {
     SnakeContext *ctx = &((AppState *)appstate)->snake_ctx;
     switch (event->type) {
@@ -320,7 +344,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, const SDL_Event *event)
     return SDL_APP_CONTINUE;
 }
 
-void SDL_AppQuit(void *appstate)
+void SDL_AppQuit(void *appstate, SDL_AppResult result)
 {
     if (appstate != NULL) {
         AppState *as = (AppState *)appstate;
